@@ -1,0 +1,62 @@
+pipeline { 
+    agent any 
+    environment {
+        mvn_home = tool name: 'Maven', type: 'maven'
+       
+            }
+    stages {
+        stage('SCM-Checkout') { 
+            steps { 
+                git credentialsId: 'git', url: 'https://github.com/mahathi0387/ws2.git'
+                 
+            }
+        }
+        stage('Build'){
+            steps {
+                  sh "cd sa-webapp && '${mvn_home}/bin/mvn' clean package"
+            }
+        }
+        
+       stage('Build-Docker-Image') {
+            steps {
+                sh label: '', script: 'cd sa-webapp && sudo docker build -f Dockerfile -t omahathi/sentiment-analysis-web-app1 .'
+            }
+        }
+        
+        stage('Build-Docker-Image2') {
+            steps {
+                sh label: '', script: 'cd sa-logic && sudo docker build -f Dockerfile -t omahathi/sentiment-analysis-logic .'
+            }
+        }
+                     
+        stage('Build-Docker-Image3') {
+            steps {
+               sh label: '', script: '''cd sa-frontend && npm install
+               npm run build
+               sudo docker build -f Dockerfile -t omahathi/sentiment-analysis-frontend .'''
+            }
+        }
+        
+        stage('Push-Image-To-Hub'){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pwd', usernameVariable: 'dockerhub')]) {
+                    sh "docker login -u '${username}' -p '${pwd}'"
+                    sh "docker push omahathi/sentiment-analysis-frontend"
+					sh "docker push omahathi/sentiment-analysis-logic"
+					sh "docker push omahathi/sentiment-analysis-web-app"
+                }
+            }
+        }
+         stage('Build-Docker-run')
+         {
+            steps {
+                sh label: '', script: '''sudo docker run -d -p 5050:5000 omahathi/sentiment-analysis-logic
+                sudo docker run -d -p 8080:8080 -e SA_LOGIC_API_URL=\'http://172.17.0.2:5000\' omahathi/sentiment-analysis-web-app
+                sudo docker run -d -p 81:80 omahathi/sentiment-analysis-frontend'''
+            }
+            
+        }
+	   
+
+	  }
+}
