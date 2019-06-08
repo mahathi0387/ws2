@@ -1,0 +1,29 @@
+sudo docker run -u root --rm -i -p 8080:8080 -p 50000:50000 -v jenkins-data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkinsci/blueocean
+
+sudo docker run --rm -u root -p 8080:8080 -v jenkins-data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME":/home jenkinsci/blueocean
+
+docker run -d -p 5050:5000 omahathi/sentiment-analysis-logic
+
+docker run -d -p 8080:8080 -e SA_LOGIC_API_URL='http://172.17.0.2:5000' omahathi/sentiment-analysis-web-app
+
+docker run -d -p 80:80 omahathi/sentiment-analysis-frontend
+
+  stage('npm') {
+            steps {
+                nodejs(nodeJSInstallationName: 'Nodejs 12.0.0', configId: null) {
+                    sh 'npm config ls'
+                }
+            }
+        }
+		
+		
+	 stage('Push-Image-To-Hub'){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pwd', usernameVariable: 'dockerhub')]) {
+                    sh "docker login -u '${username}' -p '${pwd}'"
+                    sh "docker push omahathi/sentiment-analysis-frontend"
+					sh "docker push omahathi/sentiment-analysis-logic"
+					sh "docker push omahathi/sentiment-analysis-web-app"
+                }
+            }
+        }
