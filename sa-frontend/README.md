@@ -12,3 +12,5 @@
 
 ## Pushing the container
 ` $ docker push $DOCKER_USER_ID/sentiment-analysis-frontend `
+
+chnaging the fetch statement in app.js by giving the public DNS name to work remotely
