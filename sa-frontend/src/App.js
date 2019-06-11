@@ -20,7 +20,7 @@ class App extends Component {
     };
 
     analyzeSentence() {
-        fetch('http://ubuntuk.eastus.cloudapp.azure.com:8080/sentiment', {
+        fetch('http://ubuntuk.eastus.cloudapp.azure.com:8082/sentiment', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
